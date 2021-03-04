@@ -11,6 +11,11 @@ import (
 	gops "github.com/mitchellh/go-ps"
 )
 
+const (
+	kthreadPid        = 2
+	kthreadExecutable = "kthreadd"
+)
+
 // ProcTree represents a session that inspects, monitors, and manipulates the system process tree
 type ProcTree struct {
 	// lock is a general-purpose mutex for the proctree, used for updating the tree.
@@ -81,8 +86,6 @@ func (pt *ProcTree) SortProcessesByPid(procs []*Process) {
 	defer pt.punlock()
 	pt.lockedSortProcessesByPid(procs)
 }
-
-const kthreadPid = 2
 
 func (pt *ProcTree) lockedUpdate(pruneTombstones bool) error {
 	fixedRoots := (len(pt.cfg.rootPids) > 0)
@@ -212,7 +215,7 @@ func (pt *ProcTree) lockedUpdate(pruneTombstones bool) error {
 	// If requested, exclude kernel threads
 	if !pt.cfg.includeKernelThreads {
 		kProc, ok := pt.pidMap[kthreadPid]
-		if ok {
+		if ok && kProc.Executable() == kthreadExecutable {
 			err = kProc.lockedWalkFullSubtree(func(proc *Process) error {
 				proc.isIncluded = false
 				return nil
@@ -287,12 +290,16 @@ func (pt *ProcTree) Roots() []*Process {
 }
 
 // PidProcess looks up a Process in the current snapshot by PID. If there
-// is no process with the provided PID, (nil, false) is returned.
-func (pt *ProcTree) PidProcess(pid int) (proc *Process, ok bool) {
+// is no process with the provided PID, of if the process is excluded by config,
+// nil is returned.
+func (pt *ProcTree) PidProcess(pid int) *Process {
 	pt.plock()
 	defer pt.punlock()
-	proc, ok = pt.pidMap[pid]
-	return proc, ok
+	proc, ok := pt.pidMap[pid]
+	if !ok || !proc.isIncluded {
+		proc = nil
+	}
+	return proc
 }
 
 func (pt *ProcTree) lockedFullWalkFromRoots(roots []*Process, h ProcessHandler) error {
