@@ -15,15 +15,15 @@ proctree is a simple package for working with a tree of processes.
 
 **Binaries**
 
-[![Releases](https://img.shields.io/github/release/sammck-go/proctree.svg)](https://github.com/sammck-go/proctree/releases) [![Releases](https://img.shields.io/github/downloads/sammck-go/proctree/total.svg)](https://github.com/sammck-go/proctree/releases)
-
-See [the latest release](https://github.com/sammck-go/proctree/releases/latest)
+```sh
+$ go install github.com/sammck-go/proctree/...
+```
 
 
 **Source**
 
 ```sh
-$ go get -v github.com/sammck-go/proctree
+$ go get -v github.com/sammck-go/proctree/...
 ```
 
 
@@ -355,17 +355,14 @@ Used for process tree walking operations.
 
 ### Caveats
 
-- In order so provide reliable file locking, a parallel file with a ".lock" extension is created in the same directory
-  as the proctree. This lockfile is not deleted as that would defeat its purpose.  The locking feature
-  can be disabled with an option, with the consequence that two processes may claim the same proctree, with only the last one's
-  pid actually being readable.
+- Has not been tested on Windows. In particular, WithoutKernelThreads may cause real processes to be hidden.
 
 ### Contributing
 
 - http://golang.org/doc/code.html
 - http://golang.org/doc/effective_go.html
 - `github.com/sammck-go/proctree/proctree.go` contains the importable package
-- `github.com/sammck-go/proctree/cmd/with-proctree.go` contains the command-line wrapper tool
+- `github.com/sammck-go/proctree/cmd/proctree.go` contains the command-line wrapper tool
 
 ### Changelog
 
